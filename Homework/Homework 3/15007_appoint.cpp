@@ -1,20 +1,12 @@
 #include <iostream>
 #include <map>
-
-bool isValidTime(long long time, const std::map<std::string, long long>& appointments) {
-    for (const auto& appointment : appointments) {
-        if (appointment.second == time) {
-            return false; // Time is already taken
-        }
-    }
-    return true; // Time is available
-}
+#include <string>
 
 int main() {
     long long m;
     std::cin >> m;
 
-    std::map<std::string, long long> appointments;
+    std::map<long long, std::string> appointments;
     
     for (long long i = 0; i < m; i++)
     {
@@ -27,56 +19,54 @@ int main() {
         if (cmd == "add")
         {
             std::cin >> name >> time1;
-            if (isValidTime(time1, appointments))
+            if (appointments.find(time1) == appointments.end())
             {
-                appointments[name] = time1;
+                appointments[time1] = name;
             }
             else
             {
                 std::cout << "-1\n";
             }
-            
         }
         else if (cmd == "change")
         {
             std::cin >> name >> time1 >> time2;
             
-            if (isValidTime(time2, appointments))
+            if (appointments.find(time2) != appointments.end() || appointments.find(time1) == appointments.end() || appointments.find(time1)->second != name)
             {
-                appointments[name] = time2;
+                std::cout << "-1\n";
             }
             else
             {
-                std::cout << "-1\n";
+                appointments[time2] = name;
+                appointments.erase(time1);
             }
         }
         else if (cmd == "delete")
         {
             std::cin >> name >> time1;
-            if (appointments.find(name) != appointments.end() && appointments[name] == time1)
+            if (appointments.find(time1) == appointments.end() || appointments.find(time1)->second != name)
             {
-                appointments.erase(name);
+                std::cout << "-1\n";
             }
             else
             {
-                std::cout << "-1\n";
+                appointments.erase(appointments.find(time1));
             }
         }
         else if (cmd == "search")
         {
             std::cin >> time1;
 
-            bool found = false;
-            for (const auto& appointment : appointments) {
-                if (appointment.second > time1) {
-                    std::cout << appointment.first << "\n";
-                    found = true;
-                    break;
-                }
+            if (appointments.upper_bound(time1) != appointments.end())
+            {
+                std::cout << appointments.upper_bound(time1)->second << '\n';
             }
-            if (!found) {
+            else
+            {
                 std::cout << "-1\n";
             }
+            
         }
 
     }
