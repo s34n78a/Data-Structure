@@ -1,82 +1,150 @@
 #include <iostream>
-#include <stack>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-struct node
-{
-    int v = -1;
-    node* l;
-    node* r;
+struct Node {
+    int value;
+    int left;
+    int right;
 };
 
 int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(0);
+
     int m;
     std::cin >> m;
-
-    node empty;
-    empty.v = -1;
-    empty.l = &empty;
-    empty.r = &empty;
 
     for (int i = 0; i < m; i++)
     {
         int n;
         std::string cmd;
-        bool valid = true;
-
-        std::cin >> n;
-        std::cin >> cmd;
+        std::cin >> n >> cmd;
 
         if (cmd != "PRE" && cmd != "IN" && cmd != "POST")
         {
-            valid = false;
-
-            for (int j = 0; j < 3*n; j++)
+            for (int j = 0; j < n; j++) // flush input
             {
-                std::string temp;
-                std::cin >> temp;
+                int val, left, right;
+                std::cin >> val >> left >> right;
             }
 
             std::cout << "Invalid command\n";
             continue;
         }
 
-        node* maze_root = new node;
-        maze_root->v = -1;
-        maze_root->l = &empty;
-        maze_root->r = &empty;
+        std::vector<int> values(n);
+        std::vector<int> rightValues(n);
+        std::vector<int> leftValues(n);
 
-        node current;
-        current.v = -1;
-        current.l = &empty;
-        current.r = &empty;
+        std::unordered_map<int, int> indexOf;
+        indexOf.reserve(static_cast<std::size_t>(n)*2);
 
-        for (int j = 0; j < n && valid; j++)
+        for (int j = 0; j < n; j++)
         {
-            int v, l, r;
-            std::cin >> v;
-            std::cin >> l;
-            std::cin >> r;
+            std::cin >> values[j] >> leftValues[j] >> rightValues[j];
 
-            if (maze_root->v == -1)
-            {
-                maze_root->v = v;
-
-                maze_root->l = new node;
-                maze_root->l->v = l;
-                maze_root->l->l = &empty;
-                maze_root->l->r = &empty;
-
-                maze_root->r = new node;
-                maze_root->r->v = r;
-                maze_root->r->l = &empty;
-                maze_root->r->r = &empty;
-
-                continue;
-            }
-            
+            indexOf[values[j]] = j;
         }        
         
+        std::vector<Node> nodes(n);
+        for (int j = 0; j < n; j++) // make tree
+        {
+            nodes[j] = {values[j], -1, -1};// value, left, right
+
+            if (leftValues[j] != -1)
+            {
+                nodes[j].left = indexOf[leftValues[j]];
+            }
+            
+            if (rightValues[j] != -1)
+            {
+                nodes[j].right = indexOf[rightValues[j]];
+            }
+        }
+        
+        std::vector<int> output;
+        output.reserve(n);
+        std::vector<int> stack;
+        stack.reserve(n);
+
+        const int root = 0;
+
+        if (cmd == "PRE")
+        {
+            stack.push_back(root); 
+
+            while (!stack.empty())
+            {
+                int cur = stack.back();
+                stack.pop_back();
+                output.push_back(nodes[cur].value); // store value
+
+                if (nodes[cur].right != -1) // check right
+                {
+                    stack.push_back(nodes[cur].right);
+                } // right first because stack filo
+                
+                if (nodes[cur].left != -1) // check left
+                {
+                    stack.push_back(nodes[cur].left);
+                }
+            }
+        }
+        else if (cmd == "IN")
+        {
+            int cur = root;
+
+            while (cur != -1 || !stack.empty())
+            {
+                while (cur != -1) // go the most left
+                {
+                    stack.push_back(cur);
+                    cur = nodes[cur].left;
+                }
+                
+                cur = stack.back();
+                stack.pop_back();
+                output.push_back(nodes[cur].value); // store left, value, right
+                cur = nodes[cur].right;
+            }
+        }
+        else // post sama kaya pre, cuma ganti urutan left right terus reverse
+        {
+            stack.push_back(root);
+
+            while (!stack.empty())
+            {
+                int cur = stack.back();
+                stack.pop_back();
+                output.push_back(nodes[cur].value); // store value
+
+                if (nodes[cur].left != -1) // check left
+                {
+                    stack.push_back(nodes[cur].left);
+                } // left first because stack filo
+                
+                if (nodes[cur].right != -1) // check right
+                {
+                    stack.push_back(nodes[cur].right);
+                }
+            }
+            
+            for (size_t j = 0, k = output.size()-1; j < k; j++, k--)
+            {
+                std::swap(output[i], output[j]);
+            }
+        }
+        
+        for (int j = 0; j < n; j++)
+        {
+            if (j != 0)
+            {
+                std::cout << ' ';
+            }
+            std::cout << output[j];
+        }
+        std::cout << '\n';
     }
-    
 }
