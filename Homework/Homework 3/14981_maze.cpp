@@ -133,7 +133,7 @@ int main() {
             
             for (size_t j = 0, k = output.size()-1; j < k; j++, k--)
             {
-                std::swap(output[i], output[j]);
+                std::swap(output[j], output[k]);
             }
         }
         
